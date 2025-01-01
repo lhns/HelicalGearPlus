@@ -543,7 +543,7 @@ class HelicalGear:
             if baseFeature:
                 component.bRepBodies.add(cachedBody, baseFeature)
             else:
-                component.bRepBodies.add(cachedbody)
+                component.bRepBodies.add(cachedBody)
 
         # Draws pitch diameter
         pitchDiameterSketch = component.sketches.add(component.xYConstructionPlane)
@@ -928,29 +928,31 @@ class CommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             isTeeth.tooltipDescription = "The number of teeth a gear has.\nGears with higher helix angle can have less teeth.\nFor example mots worm gears have only one."
 
             # Number of planets.
-            isNumPlanets = tabSettings.children.addIntegerSpinnerCommandInput("ISPlanets", "Number of Planets", 1, 99999, 1,
-                                                                         pers['ISPlanets'])
+            isNumPlanets = tabSettings.children.addIntegerSpinnerCommandInput("ISPlanets", "Number of Planets", 1,
+                                                                              99999, 1,
+                                                                              pers['ISPlanets'])
             isNumPlanets.isVisible = pers['DDType'] == "Planetary Gearset"
             isNumPlanets.tooltip = "Number of Planets"
             isNumPlanets.tooltipDescription = "The number of teeth a gear has.\nGears with higher helix angle can have less teeth.\nFor example mots worm gears have only one."
 
             # Number of gear teeth of the sun.
             isSunTeeth = tabSettings.children.addIntegerSpinnerCommandInput("ISSunTeeth", "Sun Teeth", 1, 99999, 1,
-                                                                         pers['ISSunTeeth'])
+                                                                            pers['ISSunTeeth'])
             isSunTeeth.isVisible = pers['DDType'] == "Planetary Gearset"
             isSunTeeth.tooltip = "Number of Teeth"
             isSunTeeth.tooltipDescription = "The number of teeth a gear has.\nGears with higher helix angle can have less teeth.\nFor example mots worm gears have only one."
 
             # Number of gear teeth of the planets.
-            isPlanetTeeth = tabSettings.children.addIntegerSpinnerCommandInput("ISPlanetTeeth", "Planet Teeth", 1, 99999, 1,
-                                                                         pers['ISPlanetTeeth'])
+            isPlanetTeeth = tabSettings.children.addIntegerSpinnerCommandInput("ISPlanetTeeth", "Planet Teeth", 1,
+                                                                               99999, 1,
+                                                                               pers['ISPlanetTeeth'])
             isPlanetTeeth.isVisible = pers['DDType'] == "Planetary Gearset"
             isPlanetTeeth.tooltip = "Number of Teeth"
             isPlanetTeeth.tooltipDescription = "The number of teeth a gear has.\nGears with higher helix angle can have less teeth.\nFor example mots worm gears have only one."
 
             # Number of gear teeth of the ring.
             isRingTeeth = tabSettings.children.addIntegerSpinnerCommandInput("ISRingTeeth", "Ring Teeth", 1, 99999, 1,
-                                                                         pers['ISRingTeeth'])
+                                                                             pers['ISRingTeeth'])
             isRingTeeth.isVisible = pers['DDType'] == "Planetary Gearset"
             isRingTeeth.tooltip = "Number of Teeth"
             isRingTeeth.tooltipDescription = "The number of teeth a gear has.\nGears with higher helix angle can have less teeth.\nFor example mots worm gears have only one."
@@ -1114,13 +1116,15 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
             preserveInputs(args.command.commandInputs, pers)
 
             gears = generateGears(args.command.commandInputs)
+            # pylint: disable=no-member
             for gear in gears:
                 model = gear.modelGear(
                     adsk.core.Application.get().activeProduct.rootComponent)
                 moveGear(model, args.command.commandInputs, gear.modelRotation, gear.modelOffsetXY)
             # Applies the movement in parametric design mode
-            if (adsk.core.Application.get().activeDocument.design.designType):
+            if adsk.core.Application.get().activeDocument.design.designType:
                 adsk.core.Application.get().activeDocument.design.snapshots.add()
+            # pylint: enable=no-member
 
         except:
             print(traceback.format_exc())
@@ -1143,13 +1147,16 @@ class CommandExecutePreviewHandler(adsk.core.CommandEventHandler):
 
                 tbm = adsk.fusion.TemporaryBRepManager.get()
 
-                reuseGear = len(lastGears) > 0 and lastInput in ["APITabBar", "SIPlane", "SIOrigin", "SIDirection", "DDDirection",
-                                          "AVRotation", "BVFlipped", "DVOffsetX", "DVOffsetY", "DVOffsetZ"]
+                reuseGear = len(lastGears) > 0 and lastInput in ["APITabBar", "SIPlane", "SIOrigin", "SIDirection",
+                                                                 "DDDirection",
+                                                                 "AVRotation", "BVFlipped", "DVOffsetX", "DVOffsetY",
+                                                                 "DVOffsetZ"]
 
                 gears = generateGears(args.command.commandInputs)
 
                 if not reuseGear:
                     lastGears = []
+                # pylint: disable=no-member
                 for i in range(len(gears)):
                     gear = gears[i]
                     model = gear.modelGear(
@@ -1161,6 +1168,7 @@ class CommandExecutePreviewHandler(adsk.core.CommandEventHandler):
                 # Applies the movement in parametric design mode
                 if not reuseGear and adsk.core.Application.get().activeDocument.design.designType:
                     adsk.core.Application.get().activeDocument.design.snapshots.add()
+                # pylint: enable=no-member
 
                 args.isValidResult = True
             else:
@@ -1206,7 +1214,8 @@ class CommandInputChangedHandler(adsk.core.InputChangedEventHandler):
                 args.inputs.itemById("ISRingTeeth").isVisible = gearType == "Planetary Gearset"
                 args.inputs.itemById("VIHeight").isVisible = gearType == "Rack Gear"
                 args.inputs.itemById("VILength").isVisible = gearType == "Rack Gear"
-                args.inputs.itemById("VIDiameter").isVisible = gearType == "Internal Gear" or gearType == "Planetary Gearset"
+                args.inputs.itemById(
+                    "VIDiameter").isVisible = gearType == "Internal Gear" or gearType == "Planetary Gearset"
             # Updates Information
             if args.inputs.itemById("TabProperties") and args.inputs.itemById("TabProperties").isActive:
                 gear = generateGears(args.inputs)[0]
@@ -1404,30 +1413,30 @@ def generateGears(commandInputs):
         commandInputs.itemById("VIDiameter").value
     ]
 
-    if (gearType == "Rack Gear"):
-        if (standard == "Normal"):
+    if gearType == "Rack Gear":
+        if standard == "Normal":
             return [RackGear.createInNormalSystem(*rackParams)]
         else:
             return [RackGear.createInRadialSystem(*rackParams)]
     else:
-        if (gearType == "External Gear"):
-            if (standard == "Normal"):
+        if gearType == "External Gear":
+            if standard == "Normal":
                 return [HelicalGear.createInNormalSystem(*externalGearParams)]
             else:
                 return [HelicalGear.createInRadialSystem(*externalGearParams)]
-        elif (gearType == "Internal Gear"):
-            if (standard == "Normal"):
+        elif gearType == "Internal Gear":
+            if standard == "Normal":
                 return [HelicalGear.createInNormalSystem(*internalGearParams)]
             else:
                 return [HelicalGear.createInRadialSystem(*internalGearParams)]
-        else: # gearType == "Planetary Gearset"
+        else:  # gearType == "Planetary Gearset"
             gears = []
 
             params = externalGearParams.copy()
             params[0] = commandInputs.itemById("ISSunTeeth").value
-            params[3] = -params[3] # Reverse the helix angle of the sun gear
+            params[3] = -params[3]  # Reverse the helix angle of the sun gear
             sun = HelicalGear.createInNormalSystem(*params)
-            if ((commandInputs.itemById("ISPlanetTeeth").value) % 2 == 0):
+            if (commandInputs.itemById("ISPlanetTeeth").value) % 2 == 0:
                 sun.modelRotation = math.pi / commandInputs.itemById("ISSunTeeth").value
             gears.append(sun)
 
@@ -1446,7 +1455,7 @@ def generateGears(commandInputs):
             return gears
 
 
-def moveGear(gear, commandInputs, modelRotation = 0, modelOffsetXY = [0, 0]):
+def moveGear(gear, commandInputs, modelRotation=0, modelOffsetXY=[0, 0]):
     moveMatrix = adsk.core.Matrix3D.create()
     moveMatrix.translation = adsk.core.Vector3D.create(modelOffsetXY[0], modelOffsetXY[1], 0)
     rotateMatrix = adsk.core.Matrix3D.create()
